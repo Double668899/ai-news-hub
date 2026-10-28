@@ -68,6 +68,75 @@
 | 机器之心 | `/rss` | 302 到数据服务页，**无 feed** |
 | 智东西 | `/feed` | 500 |
 
+### Substack 系全部需要走代理（本机实测 2026-10-28）
+
+`importai` / `thesequence` / `epochai` / `alphasignalai` / `latent.space` 全部是 Substack 域名，
+**直连必然失败**：DNS 解析到 Facebook/Meta 的 IP 段（`2a03:2880::face:b00c`、`31.13.x.x`、`157.240.x.x`），
+`fetch` 报 `connect ETIMEDOUT`，`web_fetch` 同样失败。
+
+- ✅ **可用的读取路径**：`curl -x http://127.0.0.1:7897 -L <feed-url>`（本机代理实测通，4 个源各拿到完整 15 条，228KB–917KB）
+- ❌ DoH（alidns / 223.5.5.5）**不可用**：返回的 IP 同样被污染，直连一律超时
+- ⚠️ `latent.space` 直连 `curl -L` 只能拿到 7 条，**经代理才返回完整 15 条**
+- 换环境复测时先确认代理是否在线，否则会误判成「源已死」
+
+### CNBC 的 feed id 会骗人
+
+`https://www.cnbc.com/id/20910258/device/rss/rss.html` 的 channel title 实为 **Economy**
+（`seo=cnbc.com/economy/`），内容全是央行、财政、宏观经济，**零 AI**。
+真正含 AI 内容的频道是 **`id=19854910` = Tech**（实测前 15 条中 8–9 条为 AI 主题）。
+`id=10001147` = Business News（公司/行业/诉讼），两个频道标题交集为 0。
+
+> 看 feed 时**必须先读 channel 的 title 和 seo 字段**，别看 URL 猜内容。
+
+### MIT Technology Review 的 AI feed 已被厂商投放占据
+
+该 feed 的 10 条里 **7 条不是编辑部产出**，正文自带声明：
+「This content was produced by Microsoft / EXL / WD / HPE / TripleTen… not written by MIT Technology Review's editorial staff」
+或「produced by Insights, MIT TR's custom content arm, not its editorial staff」，另有活动推广稿。
+**只有 3 条是本部原创**（现场特写、原创分析、具名评论）。
+
+→ 用它必须**逐条筛**，不能整条 feed 当新闻源。
+
+### 同一家的多个 feed 会重复计权（实测前 15 条标题重合）
+
+| 组合 | 重合 |
+|---|---|
+| TechCrunch AI ↔ TechCrunch 全站 | **9 / 15** |
+| Ars Technica AI ↔ Ars Technica 全站 | 3 / 15 |
+| Ars Technica Technology Lab ↔ Ars Technica 全站 | 1 / 15 |
+| CNBC Economy ↔ CNBC Business | 0 / 15 |
+
+→ 订阅其中**一个**即可，不要同时订阅同家的分类 feed 与全站 feed。
+
+### 国内财经站被 WAF 挡住时的读取路径（实测 2026-10-28）
+
+三个站的主站在本机直接抓都会被拦，各有各的绕法：
+
+| 站 | 直接抓的结果 | 可用绕法 |
+|---|---|---|
+| **财联社** | `cls.cn` node fetch `fetch failed`（TLS 层不通）、curl HTTPS 超时 19s、`/telegraph` 只返回「需启用JS」空壳、`/v1/roll/get_roll_list` 返回 `{"errno":"10012","msg":"签名错误"}`、`/nodeapi/telegraphList` 404 | RSSHub 镜像 `hub.slarker.me/cls/telegraph` ✅ 取到 20 条 |
+| **36氪** | 全站被火山引擎 WAF 拦截（web_fetch / node fetch / curl 三种方式都返回「正在进行安全检测」挑战页，curl 200 也是挑战页）、`gateway.36kr.com` POST 404/500、rsshub.app 不可达 | RSSHub 镜像 `rsshub.rssforever.com/36kr/newsflashes` ✅ 取到 20 条 |
+| **澎湃新闻** | `api.thepaper.cn` 的 POST 接口被 WAF 403 | 站点自身 SSR 数据：`https://www.thepaper.cn/list_25949` 的 `__NEXT_DATA__` ✅ 带逐条 `trackOriginality` |
+| **证券时报** | 无 RSS，无公开 JSON 接口 | 首页 SSR 抓出 119 条 `/article/detail/*.html` 链接，再逐篇读详情页的**「来源」字段** ✅ |
+
+> ⚠️ 这几个站的「深度频道 / 文章流」样本仍然缺位（主站被 WAF 与接口签名挡住）。
+> 上面财联社 87% 与 36氪 60% 的结论**只覆盖快讯频道**，用的时候注意这个边界。
+
+### 澎湃新闻带官方「原创标记」字段（可直接读，不用猜）
+
+澎湃的页面内嵌 `__NEXT_DATA__`，条目对象里有 **`trackOriginality`**（`是` / `否`）与 `trackAuthor`（作者/来源名）。
+拉 `https://www.thepaper.cn/list_25949`（首页推荐流）即可拿到最近条目及其**官方原创标记**。
+
+```javascript
+fetch('https://www.thepaper.cn/list_25949', {headers:{'user-agent':'Mozilla/5.0'}})
+// → JSON.parse(页面中 __NEXT_DATA__ 的内容).props.pageProps
+// → 递归找 {trackOriginality, name, trackAuthor, publishTime}
+```
+
+- ✅ 这是**唯一一个有官方原创标记**的中文源 —— 判定原创性不用靠读正文猜
+- ⚠️ 但它的首页流里 `trackAuthor` 大量是「人民日报客户端 / 央视网 / 新华网」→ **转载占比高**，实测原创仅约 40%
+- 注意：`list_25462` 是「中国政库」频道（要闻转载为主），`list_25949` 才是首页推荐流
+
 ### 只能由 agent 解析（脚本处理不了）
 
 所有 `status=agent` 的源：Anthropic Engineering / Anthropic News 列表页、国内 14 个厂商官网、36氪、澎湃、证券时报、财联社。

@@ -1,9 +1,10 @@
 ---
 name: ai-news-hub
 description: |
-  AI 行业新闻白名单与来源分层披露规范。基于 92 个已实测的担保信源(海外/国内厂商官方博客与
-  政策源、arXiv、GitHub release、国内厂商官网、一线原创媒体)采集当天的 AI 动态,严格区分
-  S1(白名单担保来源)与 S2(模型自主检索的未担保来源),最终产出可直接打开的 HTML 简报。
+  AI 行业新闻白名单与来源分层披露规范。基于 87 个已实测的担保信源(海外/国内厂商官方博客与
+  政策源、arXiv、GitHub release、国内厂商官网,以及 27 个经逐条实测判定为原创采编的媒体),
+  采集当天的 AI 动态,严格区分 S1(白名单担保来源)与 S2(模型自主检索的未担保来源),
+  最终产出可直接打开的 HTML 简报。
   不规定抓取方式——搜索与爬取由 agent 自带能力决定;只担保"抓什么"与"来源怎么标"。
   Use this skill when the user asks for 今天的 AI 新闻 / AI 日报 / 今天 AI 圈发生了什么 /
   最近有什么 AI 大事 / AI 新闻汇总 / 过去 24 小时 AI 动态,or wants the day's AI headlines
@@ -42,13 +43,22 @@ description: |
 ### 1. 定位信源（不要通读全表）
 
 先读 [`topic-map.md`](references/topic-map.md) 找到相关主题组，再去 [`sources.md`](references/sources.md) 取那几组的具体源。
-**92 条全塞进上下文既贵又淹掉重点**——按主题取，不要扫全表。
+**87 条全塞进上下文既贵又淹掉重点**——按主题取，不要扫全表。
 
 ### 2. 抓取前的必读
 
 读 [`source-integrity.md`](references/source-integrity.md)。里面有 **20 个已知会骗人的源**（假 200、HEAD 误杀、302 改内容、限流、停更）。
 典型陷阱：`36kr.com/feed` 返回的是 HTML 不是 feed；`wallstreetcn.com/rss.xml` 是 S3 报错页；`ifanr.com` 用 HEAD 会被 403 误杀。
 **只看状态码会把假源当好源。**
+
+### 2.5 白名单的信任前提
+
+`sources.md` 里的每一条都经过**实测判定**（B 层还标了实测原创率），含义是：**你不需要再逐条判断它可不可信**。
+
+如果某个源需要你逐条筛才可靠（像 MIT Technology Review 的 AI feed —— 10 条里 7 条是厂商投放），
+**它就不在白名单里**，命中时按 **S2** 处理。这是白名单的边界，不是遗漏。
+
+同一家的多个 feed 不要同时订阅（TechCrunch AI ↔ 全站实测重合 9/15），会重复计权。
 
 ### 3. 采集
 
@@ -127,7 +137,7 @@ HTML 的结构、样式、CSS 方案、DOM 层级**完全由你决定**——本
 
 ## References
 
-- [`references/sources.md`](references/sources.md) — **核心资产**：92 条 A/B 层担保信源 + 元数据 + 实测状态
+- [`references/sources.md`](references/sources.md) — **核心资产**：87 条 A/B 层担保信源 + 元数据 + 实测状态 + 实测原创率
 - [`references/topic-map.md`](references/topic-map.md) — 主题 → 信源组映射（按主题取源，别扫全表）
 - [`references/output-template.md`](references/output-template.md) — HTML 输出模板、S1/S2 标注规范、**四种违规反例**
 - [`references/source-integrity.md`](references/source-integrity.md) — 信源真实性判读：假 200、HEAD 误杀、302、限流、停更判定

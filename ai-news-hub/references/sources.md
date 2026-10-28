@@ -11,6 +11,7 @@
 | **权威度** | 1-5。5=官方发布即事实；4=机构/一线采编；3=二手编译或垂直媒体；2=一般 |
 | **状态** | `ok` = 2026-10-28 本机实测通过且结构校验成功 / `retry` = 本机网络受限或被拦，需在目标环境复测（**不代表站点已死**） / `agent` = 只能由 agent 联网工具解析 HTML，脚本不处理 |
 | **频率** | `daily` / `weekly` / `monthly` — 决定停更判定阈值 |
+| **原创率** | B 层专有。2026-10-28 实测：最近 15 条里该媒体**自己产生**的信息占比 |
 | **备注** | 抓取陷阱、入口变通、特殊定位 |
 
 ## 怎么用这张表
@@ -121,70 +122,106 @@ release notes 是**一手**（开发者自己写的变更记录）。
 
 # B 层 · 担保原创媒体
 
-有**原创采编能力**的媒体 —— 报道内容是他们自己采写或原创分析，不是转载聚合。
+## 判定方法（2026-10-28 实测）
+
+对每个源，抓**最近 15 条**（feed 不足则取全部），逐条读标题与摘要——部分源进一步读到正文段落——
+判断每条内容是**该媒体自己产生的**，还是**别人的内容被翻译/编译/聚合过来**。
+
+**进 B 层要同时满足两个条件：**
+
+1. **原创占比 ≥ 60%** —— 该媒体自己产生的信息的比例
+2. **体裁是新闻采编 / 时事分析** —— 教程、榜单、链接摘要不算
+
+**外加一条白名单前提**：凡是**需要 agent 逐条判断才可靠**的源，都不进白名单 —— 那正是 S2 该干的活。
+
+> ⚠️ 上表所有 B 层的「原创率」都是实测值，不是印象判断。
 
 ## B1 · 海外原创媒体（19）
 
-| 名称 | URL | 类型 | 权威 | 状态 | 频率 | 备注 |
-|---|---|---|---|---|---|---|
-| The Verge AI | https://www.theverge.com/rss/ai-artificial-intelligence/index.xml | rss | 4 | ok | daily | |
-| Ars Technica AI | https://arstechnica.com/ai/feed/ | rss | 4 | ok | daily | |
-| Ars Technica Technology Lab | https://feeds.arstechnica.com/arstechnica/technology-lab | rss | 4 | ok | daily | |
-| Ars Technica 全站 | https://feeds.arstechnica.com/arstechnica/index | rss | 3 | ok | daily | 覆盖更广，需 topic 过滤 |
-| MIT Technology Review AI | https://www.technologyreview.com/topic/artificial-intelligence/feed | rss | 4 | ok | daily | |
-| WIRED AI | https://www.wired.com/feed/tag/ai/latest/rss | rss | 4 | ok | daily | |
-| TechCrunch AI | https://techcrunch.com/category/artificial-intelligence/feed/ | rss | 4 | ok | daily | |
-| TechCrunch 全站 | https://techcrunch.com/feed/ | rss | 3 | ok | daily | 融资/IPO/并购覆盖更全 |
-| CNBC AI | https://www.cnbc.com/id/20910258/device/rss/rss.html | rss | 4 | ok | daily | 商业视角：融资/财报/产业链 |
-| CNBC 财经 | https://www.cnbc.com/id/10001147/device/rss/rss.html | rss | 4 | ok | daily | 宏观背景对 AI 估值的影响 |
-| 404 Media | https://www.404media.co/rss/ | rss | 4 | ok | daily | 平台监管与创作者经济 |
-| AI Business | https://aibusiness.com/rss.xml | rss | 3 | ok | weekly | 垂直产业报 |
-| The Decoder | https://the-decoder.com/feed/ | rss | 3 | ok | daily | |
-| Epoch AI | https://epochai.substack.com/feed | rss | 4 | retry | weekly | 原创研究机构分析 |
-| Import AI (Jack Clark) | https://importai.substack.com/feed | rss | 4 | retry | weekly | 本网络 DNS 被劫持 |
-| The Sequence (Hugging Face) | https://thesequence.substack.com/feed | rss | 4 | retry | weekly | |
-| Latent Space | https://www.latent.space/feed | rss | 4 | ok | weekly | 原创播客/分析 |
-| Interconnects | https://www.interconnects.ai/feed | rss | 4 | ok | weekly | 原创模型分析 |
-| One Useful Thing | https://www.oneusefulthing.org/feed | rss | 4 | ok | weekly | 原创工作流分析 |
+| 名称 | URL | 类型 | 权威 | 状态 | 频率 | 原创率 | 备注 |
+|---|---|---|---|---|---|---|---|
+| The Verge AI | https://www.theverge.com/rss/ai-artificial-intelligence/index.xml | rss | 4 | ok | daily | 100% | feed 仅 10 条，全部署名记者，含独家与现场采写 |
+| Ars Technica AI | https://arstechnica.com/ai/feed/ | rss | 4 | ok | daily | 80% | 3/15 是授权转载 FT；AI feed 混入非 AI 题材，选题纯度低 |
+| Ars Technica Technology Lab | https://feeds.arstechnica.com/arstechnica/technology-lab | rss | 4 | ok | daily | 100% | 自采安全漏洞追踪、自办问卷调研 |
+| Ars Technica 全站 | https://feeds.arstechnica.com/arstechnica/index | rss | 3 | ok | daily | 100% | 与 Ars AI feed 重合 3/15，**二选一** |
+| WIRED AI | https://www.wired.com/feed/tag/ai/latest/rss | rss | 4 | ok | daily | 100% | feed 仅 10 条，全部署名 WIRED 记者 |
+| The Decoder | https://the-decoder.com/feed/ | rss | 3 | ok | daily | 100% | 有「appeared first on The Decoder」首发标记；4/10 属公告改写短讯 |
+| TechCrunch AI | https://techcrunch.com/category/artificial-intelligence/feed/ | rss | 4 | ok | daily | 100% | 多条 Exclusive，自采融资/诉讼/本土信源 |
+| TechCrunch 全站 | https://techcrunch.com/feed/ | rss | 3 | ok | daily | 100% | 与 TechCrunch AI feed 重合 **9/15**，**二选一** |
+| CNBC Tech | https://www.cnbc.com/id/19854910/device/rss/rss.html | rss | 4 | ok | daily | — | ⚠️ **修正**：原用的 id 20910258 实为 Economy 频道（零 AI）；19854910 = Tech，前 15 条中 8-9 条为 AI |
+| CNBC Business | https://www.cnbc.com/id/10001147/device/rss/rss.html | rss | 4 | ok | daily | 100% | 公司/行业/诉讼；与 Tech 频道标题交集为 0 |
+| 404 Media | https://www.404media.co/rss/ | rss | 4 | ok | daily | 93% | 泄露文件/泄露录音/监管整改闭环，独家信源密度最高 |
+| AI Business | https://aibusiness.com/rss.xml | rss | 3 | ok | weekly | 80% | 全部条目署名编辑，分析型为主；3 条为厂商公告改写 |
+| Ben's Bites | https://www.bensbites.com/feed/ | rss | 3 | ok | daily | 100% | newsletter 但正文是作者一手内容（自建工具、DevDay 现场） |
+| Latent Space | https://www.latent.space/feed | rss | 4 | retry | weekly | 100% | 播客逐字稿 + 原创长文；**本机需走代理读取** |
+| Interconnects | https://www.interconnects.ai/feed | rss | 4 | ok | weekly | 100% | 第一人称原创分析，自建开源模型与许可证追踪表 |
+| One Useful Thing | https://www.oneusefulthing.org/feed | rss | 4 | ok | weekly | 100% | 原创随笔，含本人早期实测与图表 |
+| Import AI (Jack Clark) | https://importai.substack.com/feed | rss | 4 | retry | weekly | 100% | 逐篇拆解 8-13 篇论文 + 本人演讲稿；**本机需走代理读取** |
+| Epoch AI | https://epochai.substack.com/feed | rss | 4 | retry | weekly | 100% | 自有研究报告与数据洞察；**本机需走代理读取** |
+| AlphaSignal | https://alphasignalai.substack.com/feed | rss | 4 | retry | weekly | 100% | 自建防作弊编码基准实测；**本机需走代理读取** |
 
-## B2 · 国内原创媒体（13）
+## B2 · 国内原创媒体（8）
 
-| 名称 | URL | 类型 | 权威 | 状态 | 频率 | 备注 |
-|---|---|---|---|---|---|---|
-| 量子位 QbitAI | https://www.qbitai.com/feed | rss | 4 | ok | daily | |
-| 36氪 | https://36kr.com/ | html | 4 | agent | daily | 创投与公司动态，无 RSS |
-| 钛媒体 TMTPost | https://www.tmtpost.com/feed | rss | 4 | ok | daily | |
-| 极客公园 GeekPark | https://www.geekpark.net/rss | rss | 3 | ok | daily | 首页 403，RSS 可通 |
-| 爱范儿 ifanr | https://www.ifanr.com/feed | rss | 3 | ok | daily | **必须 GET**，HEAD 返回 403 |
-| 少数派 | https://sspai.com/feed | rss | 3 | ok | daily | |
-| IT之家 | https://www.ithome.com/rss/ | rss | 3 | ok | daily | 快讯为主 |
-| InfoQ 中文 | https://www.infoq.cn/feed | rss | 3 | ok | daily | 独家技术采访 |
-| 雷峰网 | https://www.leiphone.com/feed | rss | 3 | ok | daily | |
-| 华尔街见闻 | https://dedicated.wallstreetcn.com/rss.xml | rss | 4 | ok | daily | ⚠️ 主站 `wallstreetcn.com/rss.xml` 是 S3 报错页，**必须用 dedicated 域** |
-| 财联社 | https://www.cls.cn/ | html | 4 | agent | daily | 快讯与政策，无 RSS |
-| 证券时报 | https://www.stcn.com/ | html | 4 | agent | daily | A 股 AI 公司与产业链，无 RSS |
-| 澎湃新闻 | https://www.thepaper.cn/ | html | 4 | agent | daily | 国内财经与政策口径，无 RSS |
+| 名称 | URL | 类型 | 权威 | 状态 | 频率 | 原创率 | 备注 |
+|---|---|---|---|---|---|---|---|
+| 钛媒体 TMTPost | https://www.tmtpost.com/feed | rss | 4 | ok | daily | 87% | 投稿制原创专栏为主（表外表里/锦缎等）；混有「来自海外」英文翻译与品牌推广稿 |
+| 财联社 | https://www.cls.cn/ | html | 4 | agent | daily | 87% | 电报为自采快讯（带自己记者署名），**仅快讯无深度**；主站被 WAF / 接口签名挡住，需走 RSSHub 镜像 |
+| 量子位 QbitAI | https://www.qbitai.com/feed | rss | 4 | ok | daily | 75% | 记者署名 + 现场报道 + 一手实测；约 1/4 为企业公关与会议稿，信噪比打折 |
+| 爱范儿 ifanr | https://www.ifanr.com/feed | rss | 3 | ok | daily | 80% | 大量首发体验与拆解，署名作者明确；**必须 GET**，HEAD 返回 403 |
+| 少数派 | https://sspai.com/feed | rss | 3 | ok | daily | 80% | 自有评测/教程/体验；含派早报与社区速递 |
+| 证券时报 | https://www.stcn.com/ | html | 4 | agent | daily | 80% | 逐篇详情页带「来源」字段，12/15 为自采；无 RSS，需先抓首页列表再逐篇读 |
+| 极客公园 GeekPark | https://www.geekpark.net/rss | rss | 3 | ok | daily | 67% | 深度解读 + 本土产业稿，带作者与编辑署名；首页 403，RSS 可通 |
+| 36氪 | https://36kr.com/ | html | 4 | agent | daily | 60% | 快讯频道卡线通过（自采 9/15）；全站被火山引擎 WAF 拦截，需走 RSSHub 镜像 |
 
 ---
 
 # 已出局（C 层）
 
-以下 19 个源**不在白名单内**。它们要么是聚合站、要么是转载/编译型媒体 —— 不产原始信息，命中时一律按 **S2** 处理。
+**判定标准**：不产原始信息，或体裁不是新闻采编，或需要逐条筛才可靠。
+命中这些源时，一律按 **S2** 处理，并在输出里标明「未担保」。
 
-| 类别 | 源 |
-|---|---|
-| 聚合站（5） | AIHOT 精选 JSON / Agent Markdown / RSS / 热点榜 / 日报 |
-| 海外转载型（7） | MarkTechPost、KDnuggets、Techmeme、The Rundown AI、Ben's Bites、Last Week in AI、AlphaSignal |
-| 国内转载型（3） | 新智元、博客园新闻、稀土掘金 |
-| 榜单聚合（4） | RadarAI、PixelsTech AI、BestBlogs.dev、每日黎明 DailyDawn |
+## 聚合站 / RSS 自动聚合（9）
 
-**出局理由**：这类源的内容全部来自别处，命中时无法回溯到原始出处，不构成「担保」。AIHOT 是好的**发现雷达**（单次请求顶几十个 feed），但它给的是二手筛选结果 —— 想要它就当 S2 用，并在输出里标明「来自聚合站，未回溯原始出处」。
+| 源 | 实测原创率 | 说明 |
+|---|---|---|
+| AIHOT 精选 JSON / Agent Markdown / RSS / 热点榜 / 日报 | 0% | 好的**发现雷达**，但给的是二手筛选结果，命中按 S2 |
+| RadarAI | 0% | 频道标题自称「聚合」；作者栏直指爱范儿等外部作者，链接跳向 bestblogs.dev / aihot.news |
+| BestBlogs.dev | 0% | 100 条博客文章 + AI 生成的一句话摘要，作者栏是原博客作者，链接为站内镜像页 |
+| PixelsTech AI | 0% | 「curated daily」，条目全是英文他站原文，链接指向站内 `/feed/link/*` 跳转聚合页 |
+| 每日黎明 DailyDawn | 0% | 素材来自 GitHub Trending 星标数 / HN 评论 / Product Hunt 热度，再由 AI 生成解读 |
+
+## 需逐条判断 / 时段敏感（2）
+
+| 源 | 实测原创率 | 出局原因 |
+|---|---|---|
+| 澎湃新闻 | 40% | 站点**自带官方 `trackOriginality` 标记**（见 source-integrity），实测原创 6/15 —— 原创的是署名记者稿与首席评论，其余 9 条全是人民日报 / 央视网 / 新华网 / 央视军事 / 新华社客户端转载；时政频道（中国政库）转载率更高 |
+| 华尔街见闻 | 20%（扩窗到最近 30 条为 33–43%） | 最近 15 条里 12 条明确标注外部来源（据彭博 ×2 / 据华尔街日报 / 据 The Information / 新华社 / Anthropic 官网 / 摩根士丹利 / 摩根大通 / 德银研报 / 希捷电话会英文记录）；原创只有 2 条 A股/港股行情快讯 + 1 条本土融资信源。扩样后原创率仍 < 60%，且结论对取样时段高度敏感 |
+
+## 转载 / 编译型（13）
+
+| 源 | 实测原创率 | 出局原因 |
+|---|---|---|
+| 新智元 | 0% | 篇篇附外媒/论文「参考资料」，是中文重写 |
+| IT之家 | 0% | RSS 是纯快讯流，每条注明「据路透社/据科创板日报」；站内原创深度文不进此 feed |
+| 博客园新闻 | 0% | 他站全文聚合，逐条注明来源，自身零采编 |
+| 稀土掘金 | 0% | 个人开发者 UGC，社区内容聚合 |
+| InfoQ 中文 | 13% | 主体是官方公告编译 + 译自自家英文站，自采仅 13% |
+| Techmeme | 0% | 纯聚合器，标题自带外媒署名与 `Source:` 前缀 |
+| The Rundown AI | 20% | 12/15 是外部新闻转述，常明示外部来源 |
+| Last Week in AI | 0% | newsletter 连一句评论都没有，纯链接 + 原文摘录 |
+| MarkTechPost | 20% | 厂商发布稿改写，基准分全是 self-reported，无独立测试 |
+| The Sequence | 40% | Radar/Knowledge/Robotics 栏目是链接合集与论文摘要 |
+| 雷峰网 | 40% | 现场/独家/论文解读是原创，但通稿与官方发布复述接近一半 |
+| KDnuggets | 70% | 原创占比够，但体裁是教程/榜单/SEO 内容，非新闻采编 |
+| MIT Technology Review AI | 30% | AI feed 的 10 条里 7 条是厂商投放（正文自带「not written by MIT Technology Review's editorial staff」），必须逐条筛 |
 
 ---
 
 # 维护
 
 - **状态字段基于 2026-10-28 本机实测**。网络环境不同结果会变，`retry` 不等于已死。
+- **B 层的「原创率」是抽样实测值**（每个源 10-20 条），会随时间漂移。半年后建议重跑一次判定。
 - 信源死了标 `stale`，**从表里删掉**——但先确认是不是入口改版（优先找新入口，而不是直接弃用）。
-- 新增信源必须回答：它**原创产出**信息吗？走 A 层还是 B 层？
+- 新增信源必须回答：它**原创产出**信息吗？体裁是新闻采编吗？走 A 层还是 B 层？
+- **同一家媒体的多个 feed 不要同时订阅**（TechCrunch / Ars Technica 实测重合 3-9 条），否则会重复计权。
 - 信源规模变化时，同步更新 [`topic-map.md`](topic-map.md) 的主题分组。

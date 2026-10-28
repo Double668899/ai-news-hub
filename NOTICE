@@ -40,7 +40,7 @@ S2 内容在输出中必须显式标注为「未经白名单担保」。
 
 ## 信源清单
 
-- agent 用的白名单:`ai-news-hub/references/sources.md`(A 层 + B 层,92 条)
+- agent 用的白名单:`ai-news-hub/references/sources.md`(A 层 + B 层,87 条)
 - 维护者用的体检清单:`tools/sources.tsv`(全部 111 条,含已出局的 C 层)
 
 地址与状态码实测于 2026-10-28,会随站点改版而失效。

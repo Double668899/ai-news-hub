@@ -64,7 +64,7 @@ skill 里的工作流是 agent 路径,用 Agent 自带的联网能力即可完�
 
 ---
 
-## 白名单:92 条担保信源
+## 白名单:87 条担保信源
 
 完整清单见 [`ai-news-hub/references/sources.md`](ai-news-hub/references/sources.md),实测于 2026-10-28。
 
@@ -76,13 +76,18 @@ skill 里的工作流是 agent 路径,用 Agent 自带的联网能力即可完�
 - **研究与论文(9)**:arXiv cs.AI/LG/CL/RO/CV、MIT News AI、BAIR、Stanford HAI、AllenAI
 - **开源仓库(15)**:GitHub Trending 日/周榜、GitHub Search API、vllm、ollama、langchain、transformers、llama.cpp、open-webui、ComfyUI、sglang、dify、lobe-chat、codex、claude-code
 
-**B 层 · 担保原创媒体(32 条)** —— 有原创采编能力,不是转载聚合
+**B 层 · 担保原创媒体(27 条)** —— 有原创采编能力,不是转载聚合
 
-- **海外(19)**:The Verge、Ars Technica(3)、MIT Technology Review、WIRED、TechCrunch(2)、CNBC(2)、404 Media、AI Business、The Decoder、Epoch AI、Import AI、The Sequence、Latent Space、Interconnects、One Useful Thing
-- **国内(13)**:量子位、36氪、钛媒体、极客公园、爱范儿、少数派、IT之家、InfoQ 中文、雷峰网、华尔街见闻、财联社、证券时报、澎湃新闻
+- **海外(19)**:The Verge AI、Ars Technica(3)、WIRED AI、The Decoder、TechCrunch(2)、CNBC(2)、404 Media、AI Business、Ben's Bites、Latent Space、Interconnects、One Useful Thing、Import AI、Epoch AI、AlphaSignal
+- **国内(8)**:钛媒体、财联社、量子位、爱范儿、少数派、证券时报、极客公园、36氪
 
-**已出局(19 条)** —— 聚合站与转载型媒体不产原始信息,命中时一律按 **S2** 处理:
-AIHOT 系列、MarkTechPost、KDnuggets、Techmeme、The Rundown、Ben's Bites、Last Week in AI、AlphaSignal、新智元、博客园、稀土掘金、RadarAI、PixelsTech、BestBlogs、DailyDawn。
+**已出局(24 条)** —— 不产原始信息、或体裁不是新闻采编、或需要逐条筛才可靠。命中时一律按 **S2** 处理:
+
+| 类别 | 源 |
+|---|---|
+| 聚合站 / 自动聚合(9) | AIHOT 系列、RadarAI、PixelsTech AI、BestBlogs.dev、每日黎明 DailyDawn |
+| 转载 / 编译型(13) | MarkTechPost、Techmeme、The Rundown AI、Last Week in AI、新智元、IT之家、博客园新闻、稀土掘金、InfoQ 中文、The Sequence、雷峰网、KDnuggets、MIT Technology Review AI |
+| 需逐条判断 / 时段敏感(2) | 澎湃新闻、华尔街见闻 |
 
 ### 判定「一手」的标准
 
@@ -91,12 +96,32 @@ AIHOT 系列、MarkTechPost、KDnuggets、Techmeme、The Rundown、Ben's Bites�
 > 原创产生(官方公告、IR 披露、原始论文、官方仓库、原创报道)→ A 或 B 层
 > 转载 / 聚合 / 转述别人的 → C 层,出局
 
+### B 层的判定是逐条实测出来的,不是凭印象
+
+2026-10-28 对全部 46 个媒体源做了逐条审计:每个源抓最近 15 条(不足则取全部),逐条读标题与摘要,部分源进一步读到正文段落,判断每条内容是该媒体自己产生的还是转述别人的。
+
+**进 B 层要同时满足两个条件:**
+
+1. **原创占比 ≥ 60%**
+2. **体裁是新闻采编 / 时事分析**(教程、榜单、链接摘要不算)
+
+**外加一条白名单前提**:凡是需要 agent 逐条判断才可靠的源,都不进白名单 —— 那正是 S2 该干的活。
+
+审计修正了四个凭印象会判断错的地方:
+
+| 源 | 凭印象的判断 | 实测结果 |
+|---|---|---|
+| InfoQ 中文 | 原创媒体 | **13%** —— 主体是官方公告编译 + 译自自家英文站 |
+| 澎湃新闻 | 权威财经媒体 | **40%** —— 原创是署名记者稿,其余全是人民日报/央视网/新华网转载 |
+| 华尔街见闻 | 原创财经媒体 | **20%** —— 12/15 明确标注「据彭博/据 The Information/据新华社」 |
+| Ben's Bites / AlphaSignal | 链接摘要 newsletter | **100%** —— 正文是作者一手内容 |
+
 ---
 
 ## 主题 → 信源映射
 
-按主题取源,不要扫全表(92 条全塞进上下文既贵又淹掉重点)。
-见 [`ai-news-hub/references/topic-map.md`](ai-news-hub/references/topic-map.md),12 个主题组,并附**覆盖强度自查表**。
+按主题取源,不要扫全表(87 条全塞进上下文既贵又淹掉重点)。
+见 [`ai-news-hub/references/topic-map.md`](ai-news-hub/references/topic-map.md),13 个主题组,并附**覆盖强度自查表**与**本期未覆盖清单**。
 
 **弱覆盖主题(具身智能、出海全球化)和无覆盖主题(中文开发者社区)必须主动补 S2** ——
 S2 在这些领域是主要来源,不是补充。
@@ -150,7 +175,7 @@ ai-news-hub-repo/
 ├── ai-news-hub/                     # ← 这才是 skill 本体,整个目录拷进 skills 目录
 │   ├── SKILL.md                     # 定位、工作流、输出规范、边界
 │   └── references/
-│       ├── sources.md               # ★ 核心资产:92 条 A/B 层担保信源 + 元数据 + 实测状态
+│       ├── sources.md               # ★ 核心资产:87 条 A/B 层担保信源 + 元数据 + 实测状态 + 实测原创率
 │       ├── topic-map.md             # 主题 → 信源组映射 + 覆盖强度自查
 │       ├── output-template.md       # HTML 输出模板 + S1/S2 规范 + 四种违规反例
 │       └── source-integrity.md      # 信源真实性判读规则与已知坏源
