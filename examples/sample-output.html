@@ -36,6 +36,8 @@
   .badge-s2{background:var(--s2);color:#fff}
   .warn{font-size:13px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;
     border-radius:8px;padding:8px 12px;margin-top:8px}
+  .note{font-size:13px;color:var(--muted);background:#f9fafb;border:1px dashed var(--line);
+    border-radius:8px;padding:8px 12px;margin-top:8px}
   .conflict{font-size:13px;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;
     border-radius:8px;padding:8px 12px;margin-top:8px}
   .corr{font-size:13px;color:var(--muted);margin:8px 0 6px}
@@ -58,8 +60,8 @@
   </div>
 
   <div class="prov">
-    本页 <b>S1 共 4 条</b>(白名单担保)· <b>S2 共 2 条</b>(模型自主检索,未经担保)<br>
-    白名单构成:<b>A 层 3 条 · B 层 1 条</b> · 时间窗 2026-10-27 18:00 → 2026-10-28 18:00
+    本页 <b>S1 共 5 条</b>(白名单担保)· <b>S2 共 2 条</b>(模型自主检索,未经担保)<br>
+    白名单构成:<b>A 层 4 条 · B 层 1 条</b> · 时间窗 2026-10-27 18:00 → 2026-10-28 18:00
   </div>
 
   <!-- S1·A:厂商官方发布 -->
@@ -117,6 +119,18 @@
       <li><span class="tier" data-t="S2">S2</span>
         <a href="https://example.com/price-rumor">example.com</a> — 模型自采 · 未担保 · 数据与官方口径冲突</li>
     </ul>
+  </article>
+
+  <!-- S1:凑不出 S2 时,标「无 S2 交叉验证」而不是硬凑 -->
+  <article data-source-tier="S1" data-source-layer="A"
+           data-source-name="Anthropic" data-source-url="https://www.anthropic.com/news/...">
+    <h2>
+      <span class="tag tier-S1">S1</span><span class="tag layer">A 层 · 官方发布</span>
+      某厂商发布新版本 API,未提及价格调整
+    </h2>
+    <p>摘要正文:纯官方发布的事件,白名单外通常没有独立报道。</p>
+    <p class="note">无 S2 交叉验证 —— 该事件为厂商官方发布,未找到白名单外的独立报道。</p>
+    <p class="src">来源:<a href="https://www.anthropic.com/news/...">anthropic.com</a> · 官方新闻室 · 2026-10-28 10:05</p>
   </article>
 
   <!-- S2:白名单未覆盖的领域 -->

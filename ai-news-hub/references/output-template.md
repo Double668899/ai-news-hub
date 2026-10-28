@@ -55,11 +55,28 @@
 | **S2** | 白名单外的模型自主检索 | 给 URL + 显式标注未经担保；属转述性质时加 `data-source-kind="repost"` |
 
 **S2 的地位是「应当主动补充」，不是「容忍的例外」**：
-- 每条话题 S1 ≥ 1；白名单确实没覆盖 → 标「白名单未覆盖」并给 S2
-- 每条话题 S2 ≥ 1（交叉验证，防单一来源偏差）
+- 每个话题 S1 ≥ 1；白名单确实没覆盖 → 标「白名单未覆盖」并给 S2
+- **S2 用于交叉验证，但不得凑数**：找到白名单外的独立来源就补；**找不到就只交 S1**，
+  并在条目上标「**无 S2 交叉验证**」
 - S2 不得只复述 S1 已有信息（假补充等于没补充）
+- 纯官方发布的事件常常没有白名单外的独立报道——这时**不要把同一件事的转载算成 S2**
 
 **白名单不是围栏。** 检索范围完全自由，越界不违规——只要标注诚实。
+
+### 凑不出 S2 时的正确写法
+
+```html
+<article data-source-tier="S1" data-source-layer="A"
+         data-source-name="OpenAI" data-source-url="https://openai.com/index/...">
+  <h2>标题</h2>
+  <p>摘要</p>
+  <p class="note">无 S2 交叉验证 —— 该事件为厂商官方发布，未找到白名单外的独立报道。</p>
+</article>
+```
+
+> ⚠️ **这是诚实，不是缺陷。** 凑出来的 S2 可能是编的，那比缺一条严重得多。
+> 本 skill 存在的意义就是「不骗人」，一条标着「无 S2 交叉验证」的 S1，
+> 比一条混着编造内容的「S1 + S2」可信得多。
 
 ---
 
@@ -98,6 +115,28 @@
   <p class="conflict">⚠ 与下方补充来源数据不一致（价格：官方称未调整 / 补充源称已下调 40%）。两说并存，请自行判断。</p>
 </article>
 ```
+
+### 原始公告在窗口外、但事件在窗口内密集跟进
+
+**主条目用窗口内的来源**，官方原文挂在来源列表里并标注日期：
+
+```html
+<article data-source-tier="S1" data-source-layer="B"
+         data-source-name="Ars Technica AI" data-source-url="https://arstechnica.com/ai/2026/10/...">
+  <h2>标题</h2>
+  <p>摘要</p>
+  <ul class="sources">
+    <li data-source-tier="S1" data-source-layer="B">
+      <a href="https://arstechnica.com/ai/2026/10/...">Ars Technica AI</a> — 窗口内报道
+    </li>
+    <li data-source-tier="S1" data-source-layer="A">
+      <a href="https://www.anthropic.com/news/s1-sec">Anthropic</a> — 官方原文 · 原始公告 Oct 26 · 窗口外
+    </li>
+  </ul>
+</article>
+```
+
+> 不要把窗口外的官方原文直接当窗口内条目塞进主条目——那会让读者以为「今天刚发」。
 
 ---
 
