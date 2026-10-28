@@ -1,9 +1,10 @@
 ---
 name: ai-news-hub
 description: |
-  汇总当天的 AI 行业新闻。抓取 97 个已实测的一手信源(海外厂商官方博客与 RSS、arXiv、
-  GitHub release/trending,国内厂商官网与 AI 媒体),在时间窗内过滤、去重、按"官方一手 > 聚合站 >
-  研究机构 > 媒体"排序,产出可直接用于选题的中文日报。零部署、零 API Key。
+  汇总当天的 AI 行业新闻。抓取 111 个已实测信源(海外厂商官方博客与 RSS、IR 新闻室、
+  白宫与欧盟政策源、arXiv、GitHub release/trending,国内厂商官网、中文财经媒体与 AI 媒体),
+  在时间窗内过滤、去重、按"官方一手 > 聚合站 > 研究机构 > 媒体"排序,产出可直接用于选题的中文日报。
+  零部署、零 API Key。
   Use this skill when the user asks for 今天的 AI 新闻 / AI 日报 / 今天 AI 圈发生了什么 /
   最近有什么 AI 大事 / 今日 AI 资讯 / AI 动态汇总,or wants the day's AI headlines gathered
   into one briefing. Triggers on phrases like "AI 日报"、"今日 AI 新闻"、"AI 圈今天"、
@@ -46,10 +47,11 @@ description: |
    (`tier` 与 `group` 的先后就是优先级),一次请求一个地址,自己完成第 4 步。
    原因:不是所有 agent 环境都带 Node.js,配方不能绑死在脚本上。
 
-4. **补 HTML 档**。信源表里 `kind=html` 的条目(国内厂商官网、Anthropic)脚本不处理,
+4. **补 HTML 档**。信源表里 `kind=html` 的条目(国内厂商官网、中文财经媒体、Anthropic)脚本不处理,
    用联网读取工具直接打开这些地址,把标题、日期、链接抄进结果集。
    原因:国内厂商官网普遍没有 RSS(DeepSeek、智谱、字节、腾讯、百度、华为全都没有),
-   只靠 feed 会漏掉国内一半的一手发布。
+   中文财经媒体(澎湃、证券时报、财联社、36氪)同样没有 —— 只靠 feed 会漏掉国内一半的一手发布,
+   而这一半恰好是 A 股/中概/政策面的选题来源。
 
 5. **AIHOT 兜底**。当脚本和 agent 路径都没拿到足够条目时,直接取
    `https://aihot.news/api/v1/agent/latest` —— 它返回整理好的中文 Markdown,聚合了 885 个信源,
@@ -66,6 +68,7 @@ description: |
 
 7. **报健康度**。如果某些档位整体不可达(通常是本地网络限制,不是站点下线),
    在日报末尾用一行说明"X 个源本次不可达",不要假装覆盖了全部信源。
+   同时说明哪些 HTML 档取到了、哪些是 SPA 渲染拿不到 —— 国内厂商官网普遍如此,这是已知限制不是失败。
 
 ## Output contract
 

@@ -17,8 +17,12 @@ T1|OVERSEAS|Google DeepMind|https://deepmind.google/blog/rss.xml|rss|ok|daily
 T1|OVERSEAS|Google AI Blog|https://blog.google/technology/ai/rss/|rss|ok|daily
 T1|OVERSEAS|Microsoft Research|https://www.microsoft.com/en-us/research/feed/|rss|ok|monthly
 T1|OVERSEAS|NVIDIA Blog|https://blogs.nvidia.com/feed/|rss|ok|daily
+T1|OVERSEAS|NVIDIA 新闻室 (一手商业信号:财报/合作/资本)|https://nvidianews.nvidia.com/releases.xml|rss|ok|daily
+T1|OVERSEAS|Meta 工程博客|https://engineering.fb.com/feed/|rss|ok|daily
 T1|OVERSEAS|GitHub Blog AI&ML|https://github.blog/ai-and-ml/feed/|rss|ok|weekly
 T1|OVERSEAS|Apple ML Research|https://machinelearning.apple.com/rss.xml|rss|ok|monthly
+T1|OVERSEAS|白宫 News (一手政策:AI 行政令/监管)|https://www.whitehouse.gov/news/feed/|rss|ok|daily
+T1|OVERSEAS|欧盟委员会新闻 (一手政策:AI Act)|https://ec.europa.eu/commission/presscorner/api/rss?language=en|rss|ok|daily
 T1|OVERSEAS|Anthropic News (无 RSS,走 sitemap+lastmod)|https://www.anthropic.com/sitemap.xml|sitemap|ok|daily
 T1|OVERSEAS|Anthropic Engineering|https://www.anthropic.com/engineering|html|agent|daily
 T1|OVERSEAS|Anthropic News 列表页|https://www.anthropic.com/news|html|agent|daily
@@ -68,6 +72,10 @@ T3|OVERSEAS|MIT Technology Review AI|https://www.technologyreview.com/topic/arti
 T3|OVERSEAS|WIRED AI|https://www.wired.com/feed/tag/ai/latest/rss|rss|ok|daily
 T3|OVERSEAS|The Decoder|https://the-decoder.com/feed/|rss|ok|daily
 T3|OVERSEAS|TechCrunch AI|https://techcrunch.com/category/artificial-intelligence/feed/|rss|ok|daily
+T3|OVERSEAS|TechCrunch 全部 (融资/IPO/并购覆盖更全)|https://techcrunch.com/feed/|rss|ok|daily
+T3|OVERSEAS|Ars Technica 全部|https://feeds.arstechnica.com/arstechnica/index|rss|ok|daily
+T3|OVERSEAS|CNBC AI 主题 (商业视角:融资/财报/产业链)|https://www.cnbc.com/id/20910258/device/rss/rss.html|rss|ok|daily
+T3|OVERSEAS|CNBC 财经 (大盘背景:利率/宏观影响 AI 估值)|https://www.cnbc.com/id/10001147/device/rss/rss.html|rss|ok|daily
 T3|OVERSEAS|AI Business|https://aibusiness.com/rss.xml|rss|ok|weekly
 T3|OVERSEAS|404 Media|https://www.404media.co/rss/|rss|ok|daily
 T3|OVERSEAS|MarkTechPost|https://www.marktechpost.com/feed/|rss|ok|daily
@@ -96,6 +104,11 @@ T3|CHINA|IT之家|https://www.ithome.com/rss/|rss|ok|daily
 T3|CHINA|博客园新闻|https://feed.cnblogs.com/news/rss|rss|ok|daily
 T3|CHINA|稀土掘金|https://juejin.cn/rss|rss|ok|daily
 T3|CHINA|InfoQ 中文|https://www.infoq.cn/feed|rss|ok|daily
+T3|CHINA|华尔街见闻 (中文财经:宏观/中概/产业链)|https://dedicated.wallstreetcn.com/rss.xml|rss|ok|daily
+T3|CHINA|澎湃新闻 (国内财经与政策口径)|https://www.thepaper.cn/|html|agent|daily
+T3|CHINA|证券时报 (A股 AI 公司与产业链)|https://www.stcn.com/|html|agent|daily
+T3|CHINA|财联社 (快讯与政策)|https://www.cls.cn/|html|agent|daily
+T3|CHINA|36氪 (创投与公司动态)|https://36kr.com/|html|agent|daily
 T3|CHINA|RadarAI (聚合站)|https://radarai.top/feed.xml|rss|ok|daily
 T3|CHINA|PixelsTech AI (聚合站)|https://www.pixelstech.net/feed/rss/ai|rss|ok|daily
 T3|CHINA|BestBlogs.dev (聚合站)|https://www.bestblogs.dev/feeds/rss|rss|ok|daily

@@ -7,7 +7,7 @@ Docker + PostgreSQL + Node.js 24 + 一个 OpenAI 兼容的模型 Key,而且纯 L
 在 AIHOT 仓库 issue #191 里有人实测过:**每天约 90 美元**。
 
 这个 skill 是另一条路:**不建站,只给配方。**
-把经过实测的 98 个信源、三档优先级、抓取步骤、去重排序规则写进一个 SKILL.md,
+把经过实测的 111 个信源、三档优先级、抓取步骤、去重排序规则写进一个 SKILL.md,
 任何拿到它的智能体都能直接照着跑 —— **零部署、零 API Key、零服务器**。
 
 ---
@@ -43,25 +43,40 @@ node scripts/fetch.mjs --window 24h --out ./ai-news-out
 
 ## 信源覆盖
 
-98 个信源,实测于 2026-10-28。完整清单见 [`ai-news-hub/references/sources.txt`](ai-news-hub/references/sources.txt)。
+111 个信源(92 个脚本可抓 + 19 个需 agent 解析 HTML),实测于 2026-10-28。
+完整清单见 [`ai-news-hub/references/sources.txt`](ai-news-hub/references/sources.txt)。
 
 **第一优先:海外官方一手**
 
-OpenAI、Google DeepMind、Google AI Blog、Microsoft Research、NVIDIA、Apple ML Research、GitHub Blog AI&ML、Anthropic(无 RSS,走 sitemap + lastmod)、Qwen、Mistral、xAI、Hugging Face、AWS ML Blog、Google Research、Microsoft AI Blog、Amazon Science……
+OpenAI、Google DeepMind、Google AI Blog、Microsoft Research、NVIDIA Blog、**NVIDIA 新闻室(财报/合作/资本)**、
+**Meta 工程博客**、GitHub Blog AI&ML、Apple ML Research、**白宫 News(AI 行政令)**、
+**欧盟委员会新闻(AI Act)**、Anthropic(无 RSS,走 sitemap + lastmod)、Qwen、Mistral、xAI、Hugging Face、
+AWS ML Blog、Google Research、Microsoft AI Blog、Amazon Science……
 
 **第二优先:国内一手与媒体**
 
-通义千问(唯一实测可用的国内官方 RSS)、DeepSeek、智谱、字节 Seed、腾讯混元、百度文心、MiniMax、月之暗面、华为昇腾、智源、上海 AI Lab、ModelScope(以上走官方列表页),以及量子位、新智元、爱范儿、极客公园、钛媒体、雷峰网、少数派、IT 之家、InfoQ 中文、稀土掘金等(走 RSS)。
+通义千问(唯一实测可用的国内官方 RSS)、DeepSeek、智谱、字节 Seed、腾讯混元、百度文心、MiniMax、
+月之暗面、华为昇腾、智源、上海 AI Lab、ModelScope(以上走官方列表页),
+以及量子位、新智元、爱范儿、极客公园、钛媒体、雷峰网、少数派、IT 之家、InfoQ 中文、稀土掘金、
+**华尔街见闻**、**澎湃、证券时报、财联社、36氪**(走 RSS 或列表页)。
 
 **第三优先:GitHub 生态**
 
-Trending 日榜/周榜、GitHub Search API,以及 vllm、transformers、llama.cpp、ollama、open-webui、ComfyUI、sglang、dify、lobe-chat、codex、claude-code 等主仓的 `releases.atom`。
+Trending 日榜/周榜、GitHub Search API,以及 vllm、transformers、llama.cpp、ollama、open-webui、ComfyUI、
+sglang、dify、lobe-chat、codex、claude-code 等主仓的 `releases.atom`。
 
 **兜底:AIHOT 官方接口**
 
 AIHOT 提供了 28 个免密钥 REST 端点、7 个 RSS 和一个远程 MCP。全部匿名只读。
 skill 把 `https://aihot.news/api/v1/agent/latest` 作为兜底路径 —— 它直接返回整理好的中文 Markdown,
 一个请求顶几十个 feed,是所有源都不可用时的保命符。
+
+### 一个绕不开的现实
+
+**国内厂商官网没有 RSS,而且全是前端渲染的 SPA。** DeepSeek、智谱、字节、腾讯、百度、华为、MiniMax、Kimi 全部如此 ——
+直接抓取拿不到带日期的条目列表。中文财经媒体(澎湃、证券时报、财联社)同样没有 RSS。
+
+所以国内这一段只能靠国内媒体承接。这不是偷懒,是实测结论,写在 `rules.md` 第 10 节。
 
 ## 设计上的几个取舍
 
@@ -76,6 +91,10 @@ skill 把 `https://aihot.news/api/v1/agent/latest` 作为兜底路径 —— 它
 
 **只用 GET,不用 HEAD。** `ifanr.com` HEAD 返回 403、GET 返回 200;`huxiu.com` HEAD 返回 405。
 用 HEAD 校验会把可用源误杀。
+
+**content-type 也会撒谎。** `dedicated.wallstreetcn.com/rss.xml` 的 content-type 是 `text/html`,
+body 却是合法 RSS;反过来 `wallstreetcn.com/rss.xml` 的 content-type 是 `application/xml`,
+body 却是 S3 的 `<Error>NoSuchKey</Error>` 错误页。所以校验必须解析 XML 根元素,不能只看状态码或 header。
 
 **按域名限并发。** GitHub 的 `releases.atom` 单发正常、连发必挂。脚本对同一 hostname 限制 2 并发并留 400ms 间隔,
 实测把 GitHub 档从 5/15 拉到 15/15。

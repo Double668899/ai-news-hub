@@ -73,6 +73,13 @@ GitHub 的 release 属于工程节奏,和新闻事件不同源,单列。
 | `pixelstech.net/feed/ai` | 200 但是 HTML 展示页;真 RSS 在 `/feed/rss/ai` |
 | `www.jiqizhixin.com/rss` | 302 跳到 `/data-service` 数据服务页,不是 feed |
 | `www.zhidx.com/feed` | 500 |
+| `wallstreetcn.com/rss.xml` | 200 + `application/xml`,但 body 是 S3 的 `<Error><Code>NoSuchKey</Code></Error>` 错误页;真 feed 在 `dedicated.wallstreetcn.com/rss.xml` |
+
+**反向案例:content-type 撒谎但内容是真的。**
+`dedicated.wallstreetcn.com/rss.xml` 的 content-type 是 `text/html`,body 却是合法 RSS。
+所以校验不能只看 content-type,也不能只看状态码 —— 必须解析 XML 根元素。
+脚本的判定顺序是:先看 body 前 400 字符有没有 `<?xml` / `<rss` / `<feed` / `<channel>` / `<url>`,
+再排除 `<Error>` / `NoSuchKey` 这类错误页根节点。
 
 ### 域名失效或被劫持(禁止收录)
 
@@ -142,7 +149,47 @@ RoboHot、MediaStack、newsiq.xyz、营销通鉴、青砚(环保垂类,含公众
 - **第三方原文**版权归原作者,聚合站只是阅读索引。
 - 各媒体站 feed 的再分发遵循其各自条款,抓取本身用于个人阅读通常没问题,公开发布整站内容则另说。
 
-## 10. 定期维护
+## 10. 国内一手源的结构性现实
+
+eval 阶段(有 skill vs 无 skill 两路对比)实测出的结论,直接影响信源设计:
+
+**国内厂商官网没有 RSS。** DeepSeek、智谱、字节 Seed、腾讯混元、百度文心、MiniMax、月之暗面、
+华为昇腾、智源、上海 AI Lab、ModelScope —— 全部实测无 feed。
+唯一可用的是通义千问的 GitHub Pages 博客(`qwenlm.github.io/blog/index.xml`),但内容已停更一年。
+
+**更麻烦的是它们全是前端渲染的 SPA。** eval 那路 agent 逐个打开后确认:
+这些页面直接抓取拿不到带日期的条目列表,只有 Anthropic 的 news/sitemap 这类服务端渲染的能用。
+所以国内厂商的一手发布,在本 skill 里只能靠 `kind=html` 交给 agent 解析,且不保证能拿到日期。
+现实办法是让国内媒体(雷峰网、IT之家、新智元、极客公园、爱范儿、InfoQ)承接这一段。
+
+**中文财经媒体同样没有 RSS。** 澎湃、证券时报、中国证券网、经济日报、财联社、CGTN、腾讯新闻 ——
+全部 404 或超时。但这些恰恰是**商业与政策面**选题的来源(AI 公司融资上市、算力招投标、中概股、监管口径),
+基线那路就是靠它们拿到了 Anthropic S-1 的财务细节。所以它们以 `kind=html` 收进信源表,
+不能因为抓不到就删 —— 删了这块的商业敏感度就没了。
+
+**因此补了一条财经向信源组**:NVIDIA 新闻室(一手财报/合作/资本)、Meta 工程博客、白宫 News、
+欧盟委员会新闻(AI Act)、CNBC AI 主题、CNBC 财经、华尔街见闻、TechCrunch 全部、Ars Technica 全部。
+这些解决了"海外一手商业信号"和"中文财经"两个缺口。
+
+## 11. eval 结果(2026-10-28)
+
+同一个请求跑了两路:一路加载本 skill,一路只用通用工具。
+
+| | 有 skill | 无 skill 基线 |
+|---|---|---|
+| 原始条目 | 430 条去重条目 | 8 次搜索 + 12 次抓取,约 30 个页面 / 18 个站点 |
+| 日报条目 | 20 条,5 栏 | 26 条,16 主 + 10 简讯 |
+| 链接 | 35 个,逐条验过可达 | 43 个 |
+| 结构 | 按 skill 的 Output contract 分栏,每条带"为什么值得关注"、信源、时间、多源印证家数 | 自由散文体,分析味更浓 |
+| 商业纵深 | 较弱(信源表原本偏科技官方) | 更强(靠澎湃/证券时报/CGTN 补的财经细节) |
+| 诚实度 | 明确列出 27 个不可达源并区分"网络限制"vs"站点下线" | 未声明覆盖缺口 |
+| 可复现 | 是,任何人跑同一条命令得到同构结果 | 否,依赖当次搜索运气 |
+
+结论:**skill 的价值不在"抓得比通用搜索多",而在"结构稳定 + 覆盖可声明 + 零搭建"**。
+基线那路靠 20 次工具调用和人工交叉核对拿到了更深的财经细节,这说明信源表要继续往商业与政策方向加。
+两路都抓到了 Anthropic 递交 S-1,说明这套信源对当天真正的大事件没有漏。
+
+## 12. 定期维护
 
 - 每月跑一次 `node scripts/fetch.mjs --check`,把新出现的"假 200"和"停更"补进第 6 节。
 - 失败但重试成功的源不需要改信源表;连续多次失败的再考虑标 `retry` 或换 URL。

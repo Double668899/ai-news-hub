@@ -161,11 +161,16 @@ async function fetchOne(src, timeout) {
       } else if (src.kind === 'md') {
         base.items = parseMarkdownFeed(body, src);
       } else {
-        // 假 200 防线:光看状态码会把 HTML 报错页当 feed
+        // 假 200 防线:光看状态码会把 HTML 报错页当 feed,
+        // 光看 content-type 也不够 —— 有些站(如 dedicated.wallstreetcn.com)会谎报 text/html 但 body 是真 RSS,
+        // 有些站(如 wallstreetcn.com/rss.xml)会返回 S3 的 <Error>NoSuchKey</Error> 错误页
         const head = body.slice(0, 400).toLowerCase();
-        const looksXml = /<(\?xml|rss|feed|channel)\b/.test(head);
-        if (!looksXml && !/xml/.test(base.contentType)) {
-          base.error = `非 XML 响应(ct=${base.contentType || 'none'}),已丢弃`;
+        const looksXml = /<(\?xml|rss|feed|channel|url)\b/.test(head);
+        const isErrorPage = /<error[\s>]|<code>nosuchkey|<error>/i.test(body.slice(0, 600));
+        if (isErrorPage || (!looksXml && !/xml/.test(base.contentType))) {
+          base.error = isErrorPage
+            ? '返回的是错误页而非 feed'
+            : `非 XML 响应(ct=${base.contentType || 'none'}),已丢弃`;
           return base;
         }
         base.items = parseXmlFeed(body, src);
