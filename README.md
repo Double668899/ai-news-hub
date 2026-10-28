@@ -1,35 +1,57 @@
 # ai-news-hub
 
-> 把"建一个 AI 热点站"这件事,变成任何人拿到就能跑的一份配方。
+> **不教 AI 怎么爬。只担保「抓什么」,并强制「来源怎么标」。**
 
-AIHOT 这类站点很牛 —— 盯 885 个信源、AI 打分精选、每天早上 8 点出日报。但复刻它的成本并不低:
-Docker + PostgreSQL + Node.js 24 + 一个 OpenAI 兼容的模型 Key,而且纯 LLM 流水线的真实开销
-在 AIHOT 仓库 issue #191 里有人实测过:**每天约 90 美元**。
+一个给 AI Agent 用的 **信源白名单 + 来源分层披露规范**。
 
-这个 skill 是另一条路:**不建站,只给配方。**
-把经过实测的 111 个信源、三档优先级、抓取步骤、去重排序规则写进一个 SKILL.md,
-任何拿到它的智能体都能直接照着跑 —— **零部署、零 API Key、零服务器**。
+它解决的是一个具体的信任问题:当 Agent 给你一份「今天的 AI 新闻」,你分不清哪条来自官方发布、
+哪条来自媒体转述、哪条是模型自己搜来的二手信息。这个 skill 把这件事变成可核查的结构。
 
 ---
 
 ## 它做什么
 
-抓取 24 小时窗口内的 AI 行业动态,按「官方一手 > 聚合站 > 研究机构 > 媒体」排序,产出一份可直接用于选题的中文日报。
+产出一份**可直接打开的 HTML 简报**,每条信息都带来源层级标识:
 
+```html
+<article data-source-tier="S1" data-source-layer="A"
+         data-source-name="OpenAI" data-source-url="https://openai.com/news/...">
+  <h2>标题</h2>
+  <p>摘要</p>
+</article>
+
+<article data-source-tier="S2" data-source-kind="repost"
+         data-source-name="example.com" data-source-url="https://example.com/...">
+  <h2>标题</h2>
+</article>
 ```
-node scripts/fetch.mjs --window 24h --out ./ai-news-out
-```
 
-输出两个文件:
+| 标记 | 含义 | 义务 |
+|---|---|---|
+| **S1** | 命中白名单(A 层一手 / B 层原创媒体) | 信源名 + 原始 URL + 层标 |
+| **S2** | 模型自主检索、白名单未担保 | URL + 显式标注未经担保 |
 
-| 文件 | 内容 |
+**S2 不是被容忍的例外,是应当主动补充的来源。** 每条话题 S1 ≥ 1、S2 ≥ 1(交叉验证)。
+白名单**不是围栏** —— Agent 可以检索任意范围,越界不违规,但必须诚实标注。
+
+---
+
+## 它明确不做什么
+
+| 不做 | 为什么 |
 |---|---|
-| `<日期>.jsonl` | 每行一条:title / link / summary / published / source / tier / group |
-| `<日期>.md` | 按档位分组的 Markdown 日报 |
+| ❌ 不提供抓取脚本作为主路径 | 搜索与爬取是各家 Agent 厂商自己在优化的事,不该由一个 skill 重复造轮子 |
+| ❌ 不做搜索引擎 / 爬虫 / MCP server / 代理池 | 同上 |
+| ❌ 不限制 Agent 的抓取范围 | 白名单是可信地板,不是搜索上限 |
+| ❌ 不依赖付费 API、不托管服务、不要 API Key | 零部署、零 Key 是硬要求 |
+| ❌ 不规定 HTML 长什么样 | 结构与样式由模型自己决定,本 skill 只规定**语义** |
+| ❌ 不担保内容正确性 | 只担保**信源身份与一手性**,不替内容背书 |
+
+---
 
 ## 安装
 
-把 `ai-news-hub/` 整个目录放进你的 Agent 读取的 skills 目录即可:
+把 `ai-news-hub/` 整个目录放进你的 Agent 读取的 skills 目录:
 
 | Agent | 路径 |
 |---|---|
@@ -37,119 +59,139 @@ node scripts/fetch.mjs --window 24h --out ./ai-news-out
 | Claude Code | `~/.claude/skills/ai-news-hub/` |
 | Codex / Gemini CLI / Copilot / OpenCode | `~/.agents/skills/ai-news-hub/` |
 
-依赖:Node.js 18+(用到全局 `fetch`)。**没有 npm 依赖,不需要 `npm install`。**
+**零依赖。** 没有 npm 包,没有 `npm install`,没有 Node.js 也照样能用 ——
+skill 里的工作流是 agent 路径,用 Agent 自带的联网能力即可完成。
 
-没有 Node.js 的环境也能用 —— skill 里写了完整的 agent 路径,直接按信源表逐个请求即可。
+---
 
-## 信源覆盖
+## 白名单:92 条担保信源
 
-111 个信源(92 个脚本可抓 + 19 个需 agent 解析 HTML),实测于 2026-10-28。
-完整清单见 [`ai-news-hub/references/sources.txt`](ai-news-hub/references/sources.txt)。
+完整清单见 [`ai-news-hub/references/sources.md`](ai-news-hub/references/sources.md),实测于 2026-10-28。
 
-**第一优先:海外官方一手**
+**A 层 · 担保一手(60 条)** —— 信息由该源原创产生,发布即原始事实
 
-OpenAI、Google DeepMind、Google AI Blog、Microsoft Research、NVIDIA Blog、**NVIDIA 新闻室(财报/合作/资本)**、
-**Meta 工程博客**、GitHub Blog AI&ML、Apple ML Research、**白宫 News(AI 行政令)**、
-**欧盟委员会新闻(AI Act)**、Anthropic(无 RSS,走 sitemap + lastmod)、Qwen、Mistral、xAI、Hugging Face、
-AWS ML Blog、Google Research、Microsoft AI Blog、Amazon Science……
+- **海外厂商官方(20)**:OpenAI、Google DeepMind、Google AI Blog、Google Research、Anthropic(3)、Microsoft Research / AI Blog、NVIDIA Blog / 新闻室、Meta 工程博客、GitHub Blog、Apple ML Research、AWS ML Blog、Amazon Science、Mistral、xAI、Hugging Face
+- **国内厂商官方(14)**:Qwen、DeepSeek、智谱、字节 Seed、腾讯混元、百度文心、MiniMax、Kimi、华为昇腾、智源 BAAI、上海 AI Lab、ModelScope
+- **政策与监管(2)**:白宫 News、欧盟委员会 Press Corner
+- **研究与论文(9)**:arXiv cs.AI/LG/CL/RO/CV、MIT News AI、BAIR、Stanford HAI、AllenAI
+- **开源仓库(15)**:GitHub Trending 日/周榜、GitHub Search API、vllm、ollama、langchain、transformers、llama.cpp、open-webui、ComfyUI、sglang、dify、lobe-chat、codex、claude-code
 
-**第二优先:国内一手与媒体**
+**B 层 · 担保原创媒体(32 条)** —— 有原创采编能力,不是转载聚合
 
-通义千问(唯一实测可用的国内官方 RSS)、DeepSeek、智谱、字节 Seed、腾讯混元、百度文心、MiniMax、
-月之暗面、华为昇腾、智源、上海 AI Lab、ModelScope(以上走官方列表页),
-以及量子位、新智元、爱范儿、极客公园、钛媒体、雷峰网、少数派、IT 之家、InfoQ 中文、稀土掘金、
-**华尔街见闻**、**澎湃、证券时报、财联社、36氪**(走 RSS 或列表页)。
+- **海外(19)**:The Verge、Ars Technica(3)、MIT Technology Review、WIRED、TechCrunch(2)、CNBC(2)、404 Media、AI Business、The Decoder、Epoch AI、Import AI、The Sequence、Latent Space、Interconnects、One Useful Thing
+- **国内(13)**:量子位、36氪、钛媒体、极客公园、爱范儿、少数派、IT之家、InfoQ 中文、雷峰网、华尔街见闻、财联社、证券时报、澎湃新闻
 
-**第三优先:GitHub 生态**
+**已出局(19 条)** —— 聚合站与转载型媒体不产原始信息,命中时一律按 **S2** 处理:
+AIHOT 系列、MarkTechPost、KDnuggets、Techmeme、The Rundown、Ben's Bites、Last Week in AI、AlphaSignal、新智元、博客园、稀土掘金、RadarAI、PixelsTech、BestBlogs、DailyDawn。
 
-Trending 日榜/周榜、GitHub Search API,以及 vllm、transformers、llama.cpp、ollama、open-webui、ComfyUI、
-sglang、dify、lobe-chat、codex、claude-code 等主仓的 `releases.atom`。
+### 判定「一手」的标准
 
-**兜底:AIHOT 官方接口**
+不是按「官方 vs 媒体」划线,而是看**是否产出了自己的原始信息**:
 
-AIHOT 提供了 28 个免密钥 REST 端点、7 个 RSS 和一个远程 MCP。全部匿名只读。
-skill 把 `https://aihot.news/api/v1/agent/latest` 作为兜底路径 —— 它直接返回整理好的中文 Markdown,
-一个请求顶几十个 feed,是所有源都不可用时的保命符。
+> 原创产生(官方公告、IR 披露、原始论文、官方仓库、原创报道)→ A 或 B 层
+> 转载 / 聚合 / 转述别人的 → C 层,出局
 
-### 一个绕不开的现实
+---
 
-**国内厂商官网没有 RSS,而且全是前端渲染的 SPA。** DeepSeek、智谱、字节、腾讯、百度、华为、MiniMax、Kimi 全部如此 ——
-直接抓取拿不到带日期的条目列表。中文财经媒体(澎湃、证券时报、财联社)同样没有 RSS。
+## 主题 → 信源映射
 
-所以国内这一段只能靠国内媒体承接。这不是偷懒,是实测结论,写在 `rules.md` 第 10 节。
+按主题取源,不要扫全表(92 条全塞进上下文既贵又淹掉重点)。
+见 [`ai-news-hub/references/topic-map.md`](ai-news-hub/references/topic-map.md),12 个主题组,并附**覆盖强度自查表**。
 
-## 设计上的几个取舍
+**弱覆盖主题(具身智能、出海全球化)和无覆盖主题(中文开发者社区)必须主动补 S2** ——
+S2 在这些领域是主要来源,不是补充。
 
-**只做一手源。** 二手媒体放最后一位,不是为了贬低它们,是因为一手源没有编辑损耗和转述失真。
+---
 
-**国内厂商官网普遍没有 RSS。** DeepSeek、智谱、字节、腾讯、百度、华为全部实测无 feed。
-所以国内档只能走 HTML 列表页由 agent 解析,这也是 `kind=html` 这一类存在的意义 —— 只靠 RSS 会漏掉国内一半的一手发布。
+## 输出规范
 
-**每个源都要校验,不能只看状态码。** `ai-bot.cn/feed` 返回 200,正文却是 `<error><title>Feed关闭</title></error>`;
-`36kr.com/feed` 返回 200 但 content-type 是 `text/html`;`every.to/feed`、`7min.ai/feed` 同类。
-只看状态码会把报错页当新闻条目收进来。脚本内置了 XML 根元素校验。
+见 [`ai-news-hub/references/output-template.md`](ai-news-hub/references/output-template.md)。
 
-**只用 GET,不用 HEAD。** `ifanr.com` HEAD 返回 403、GET 返回 200;`huxiu.com` HEAD 返回 405。
-用 HEAD 校验会把可用源误杀。
+**三条硬约束**:
 
-**content-type 也会撒谎。** `dedicated.wallstreetcn.com/rss.xml` 的 content-type 是 `text/html`,
-body 却是合法 RSS;反过来 `wallstreetcn.com/rss.xml` 的 content-type 是 `application/xml`,
-body 却是 S3 的 `<Error>NoSuchKey</Error>` 错误页。所以校验必须解析 XML 根元素,不能只看状态码或 header。
+1. 每条信息有**机器可读**的层级标识(`data-source-tier` 等),且人类也能一眼看出
+2. 每个来源的 **URL 必须在文档里**
+3. 页面顶部有**来源构成声明**(S1/S2 各几条、S1 内 A/B 分布)
 
-**按域名限并发。** GitHub 的 `releases.atom` 单发正常、连发必挂。脚本对同一 hostname 限制 2 并发并留 400ms 间隔,
-实测把 GitHub 档从 5/15 拉到 15/15。
+文件里附了**四种违规反例**:S2 混进正文不标识、缺 URL、标识不可解析、无来源声明。
 
-**停更判定按源频率。** 日更源超 72 小时无更新才算停更,周更看 10 天,月更看 45 天。
-统一用 48 小时会把 BAIR、One Useful Thing 这类低频源误报成停更。
+**去重与归因**:同事件多源 → 合并成一条、S1 为主干、标「多源确认」、下挂全部来源及各自层级;
+S1 与 S2 冲突 → 两者都保留并标出冲突,**不替读者裁决**。
 
-**每源限流。** arXiv 一天能出几百篇论文,不设上限会把真正的新闻挤掉。默认每源最多 25 条。
+---
+
+## 信源真实性判读
+
+见 [`ai-news-hub/references/source-integrity.md`](ai-news-hub/references/source-integrity.md)。
+
+**只看状态码会把假源当好源。** 已实测记录的坑:
+
+- **假 200**:`ai-bot.cn/feed` 返回「Feed关闭」;`36kr.com/feed` 的 content-type 是 `text/html`;
+  `wallstreetcn.com/rss.xml` 是 S3 `NoSuchKey` 错误页(真 feed 在 `dedicated.wallstreetcn.com/rss.xml`)
+- **被劫持域名**:`aisourcehub.info` 跳博彩站,`deeptech.com` 被 Canva 接管
+- **只用 GET 不用 HEAD**:`ifanr.com` HEAD 403 / GET 200;`huxiu.com` HEAD 405
+- **content-type 会撒谎**:必须解析 XML 根元素,不能只看 header
+- **302 会改内容**:`zdnet.com` 的 AI 专题 feed 跳到全站 `/rss/news/`
+- **限流**:GitHub `releases.atom` 单发正常、连发必挂;AIHOT 单 IP 约 60 次/分钟返回 429
+- **停更判定按源频率**:日更 72h / 周更 10 天 / 月更 45 天,统一用 48h 会误杀低频源
+- **超时不等于下线**:境外站大面积超时是网络策略问题,标「本次不可达」而非「已失效」
+- **Windows 特例**:schannel 证书吊销检查离线会让大量境外站误报失败,curl 需加 `--ssl-no-revoke`
+
+---
 
 ## 目录结构
 
 ```
-ai-news-hub/
-├── SKILL.md                    # 主配方:输入、流程、输出约定、失败处理
-├── references/
-│   ├── sources.txt             # 信源表(机器可读,脚本读这个)
-│   ├── rules.md                # 抓取/去重/排序规则、已知坏源、许可边界
-│   └── landscape.md            # 全量调研背景:124 个同类站 / 53 个开源项目
-└── scripts/
-    └── fetch.mjs               # Node.js 零依赖抓取器
+ai-news-hub-repo/
+├── README.md                        # 本文件
+├── LICENSE                          # MIT
+├── NOTICE                           # 第三方信源与许可边界
+├── LANDSCAPE.md                     # 调研背景:124 个同类站 / 53 个开源项目的扫描结论
+├── ai-news-hub/                     # ← 这才是 skill 本体,整个目录拷进 skills 目录
+│   ├── SKILL.md                     # 定位、工作流、输出规范、边界
+│   └── references/
+│       ├── sources.md               # ★ 核心资产:92 条 A/B 层担保信源 + 元数据 + 实测状态
+│       ├── topic-map.md             # 主题 → 信源组映射 + 覆盖强度自查
+│       ├── output-template.md       # HTML 输出模板 + S1/S2 规范 + 四种违规反例
+│       └── source-integrity.md      # 信源真实性判读规则与已知坏源
+└── tools/                           # ← 维护者区,不属于 skill 运行时
+    ├── fetch.mjs                    # 信源体检脚本(零依赖 Node.js)
+    └── sources.tsv                  # 体检清单(111 条,含已出局 C 层,用于监控复活)
 ```
 
-`fetch.mjs` 的命令行:
+### tools/ 是干什么的
+
+`tools/` **不参与 skill 的使用**。它的唯一作用是维护信源白名单的实测状态:
+批量体检 → 发现停更/改版/限流 → 回写状态字段。
 
 ```bash
-node scripts/fetch.mjs --check                  # 信源体检:状态码、条目数、最新时间、停更标记
-node scripts/fetch.mjs --window 24h --out ./out  # 抓取并生成日报
-node scripts/fetch.mjs --window 7d --tier GH     # 只看 GitHub 档,7 天窗口
-node scripts/fetch.mjs --group overseas --limit 30
+node tools/fetch.mjs --check                     # 信源体检,不改数据
+node tools/fetch.mjs --window 24h --out ./out    # 抓取并生成日报(调试用)
+node tools/fetch.mjs --tier T1,T2 --limit 20     # 限定档位与条数
 ```
 
-常用参数:`--tier T1,T2`、`--group overseas,china,github`、`--limit N`、`--per-source N`、
-`--concurrency N`、`--timeout 毫秒`。
-
-## 已知坑都在 rules.md 里
-
-- **假 200**:返回 200 但内容不是 feed 的地址清单
-- **被劫持域名**:`aisourcehub.info` 现在跳博彩站,`deeptech.com` 被 Canva 接管
-- **停更名单**:Awesome AI 日报停更 4 个月、归藏 7 个月、DevURLs 4 个月
-- **接口变更**:AIHOT 的 `/api/public/*` 将于 2026-10-31 停用,且 v1 字段变了
-  (`source` 变成对象、`url` 挪到 `links.original`)
-- **Windows 特例**:schannel 证书吊销检查离线会让大量境外站误报连接失败,curl 需加 `--ssl-no-revoke`
+---
 
 ## 致谢与许可
 
-本项目 MIT 许可。
+本项目 MIT 许可(见 [LICENSE](LICENSE))。
 
 信源清单里的 AIHOT 接口由 [数字生命卡兹克](https://github.com/KKKKhazix) 提供
 ([aihot.news](https://aihot.news),MIT 开源)。
 AIHOT 的**服务与数据**适用其公开使用规则:个人非商业、公益非商业、组织内部使用免费;
 面向外部的商业产品、收费服务、数据转售、公开镜像或批量再分发须事先取得书面授权。
+AIHOT 已在本项目白名单中出局(属 C 层聚合站),仅作为**发现雷达**保留在体检清单里。
 
 第三方原文版权归原作者所有,本项目只是聚合与阅读索引。
+详见 [NOTICE](NOTICE)。
+
+---
 
 ## 一点说明
 
 这个 skill 追求的是「**够用且不骗人**」,不是「信息最全」。
-它会明确告诉你哪些源这次没抓到、哪些源可能停更,而不是给你一份看起来很满、实际混入陈旧条目的日报。
+
+它会明确告诉你哪些是担保源、哪些是模型自采,哪些领域白名单没覆盖(该领域 S2 才是主要来源),
+而不是给你一份看起来很满、实际混着陈旧条目和未标注二手信息的日报。
+
+**把「不骗人」放在「信息全」前面,是因为一份日报的可信度取决于它的下限,不是它的上限。**

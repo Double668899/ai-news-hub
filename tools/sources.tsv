@@ -1,4 +1,15 @@
-# ai-news-hub 信源表(机器可读)
+# ai-news-hub 信源体检清单(机器可读)—— 维护者用,不是 skill 运行时的一部分
+#
+# 本文件是 tools/fetch.mjs 的输入,用途只有一个:批量体检信源存活状态,
+# 把结果回写到本文件与 ai-news-hub/references/sources.md 的状态字段。
+# skill 日常使用不需要它 —— 搜索与抓取由 agent 自己的联网能力完成。
+#
+# agent 用的白名单:ai-news-hub/references/sources.md(A 层 + B 层,92 条)。
+# 本文件保留全部 111 条(含已出局的 C 层),用于监控它们是否复活或改版。
+#
+#   层级对应:T1 + T2 + GH = A 层(担保一手)
+#            T3           = B 层(原创媒体)或 C 层(转载/聚合,已出局)
+#            AGG          = C 层(聚合站,已出局)
 #
 # 字段:tier|group|name|url|kind|status|freq
 #   tier   T1=官方一手  AGG=免密钥聚合站  T2=研究机构/论文  T3=媒体  GH=GitHub生态

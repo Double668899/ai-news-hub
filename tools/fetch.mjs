@@ -1,11 +1,18 @@
 #!/usr/bin/env node
-// ai-news-hub fetch — 批量抓取 AI 新闻信源,校验、去重、排序、输出日报。
+// ai-news-hub 信源体检工具 —— 维护者用,不是 skill 运行时的一部分。
+//
+// 本脚本不参与 skill 的日常使用。它的唯一作用是:维护信源白名单的实测状态
+// (存活/停更/改版/限流),把结果回写到 tools/sources.tsv 与
+// ai-news-hub/references/sources.md 的状态字段。
+//
+// skill 本身不使用任何脚本:搜索与抓取由 agent 自己的联网能力完成。
+//
 // 零依赖:只用 Node.js 内置模块(Node 18+ 需要全局 fetch)。
 //
-//   node scripts/fetch.mjs --check                 信源体检,不改数据
-//   node scripts/fetch.mjs --window 24h --out ./out 抓取并生成当日日报
-//   node scripts/fetch.mjs --group overseas         只抓某一档
-//   node scripts/fetch.mjs --tier T1,T2 --limit 20  限定档位与条数
+//   node tools/fetch.mjs --check                     信源体检,不改数据
+//   node tools/fetch.mjs --window 24h --out ./out    抓取并生成当日日报
+//   node tools/fetch.mjs --group overseas            只抓某一档
+//   node tools/fetch.mjs --tier T1,T2 --limit 20     限定档位与条数
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -13,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
-const SOURCES_FILE = path.join(ROOT, 'references', 'sources.txt');
+const SOURCES_FILE = path.join(HERE, 'sources.tsv');
 
 const TIER_RANK = { T1: 0, AGG: 1, T2: 2, T3: 3, GH: 4 };
 const GROUP_RANK = { OVERSEAS: 0, CHINA: 1, GITHUB: 2 };
@@ -366,7 +373,7 @@ function renderMarkdown(items, meta) {
   L.push(`窗口 ${meta.window} | 条目 ${items.length} | 信源 ${meta.okCount}/${meta.totalCount} 可用`);
   L.push('');
   if (!items.length) {
-    L.push('窗口内没有条目。检查信源健康度:`node scripts/fetch.mjs --check`');
+    L.push('窗口内没有条目。检查信源健康度:`node tools/fetch.mjs --check`');
     L.push('');
     return L.join('\n');
   }
@@ -406,8 +413,8 @@ async function main() {
     console.log(`ai-news-hub fetch — 批量抓取 AI 新闻信源并生成当日日报
 
 用法:
-  node scripts/fetch.mjs --check                    只做信源体检,不抓数据
-  node scripts/fetch.mjs --window 24h --out ./out   抓取并生成日报
+  node tools/fetch.mjs --check                    只做信源体检,不抓数据
+  node tools/fetch.mjs --window 24h --out ./out   抓取并生成日报
 
 参数:
   --window <24h|7d|2w>   时间窗,默认 24h
