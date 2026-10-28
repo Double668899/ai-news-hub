@@ -1,0 +1,9 @@
+# 统一按 LF 存储,避免 Windows 端 core.autocrlf 把换行改成 CRLF
+* text=auto eol=lf
+
+*.md   text eol=lf
+*.txt  text eol=lf
+*.mjs  text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
