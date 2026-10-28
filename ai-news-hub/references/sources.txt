@@ -1,0 +1,126 @@
+# ai-news-hub 信源表(机器可读)
+#
+# 字段:tier|group|name|url|kind|status|freq
+#   tier   T1=官方一手  AGG=免密钥聚合站  T2=研究机构/论文  T3=媒体  GH=GitHub生态
+#   group  OVERSEAS=海外  CHINA=国内  GITHUB=GitHub
+#   kind   rss|atom|json|md|sitemap|html
+#   status ok=2026-10-28 本机实测 200 且结构校验通过
+#          retry=本机网络超时或被拦,需在目标环境复测(不是站点已死)
+#          agent=只能由 agent 用联网工具解析 HTML,脚本不处理
+#   freq   daily|weekly|monthly|low —— 决定停更判定阈值
+#
+# 排序即优先级:T1 > AGG > T2 > T3 > GH,组内 OVERSEAS > CHINA > GITHUB。
+#
+# --- T1 海外官方一手 ---
+T1|OVERSEAS|OpenAI News|https://openai.com/news/rss.xml|rss|ok|daily
+T1|OVERSEAS|Google DeepMind|https://deepmind.google/blog/rss.xml|rss|ok|daily
+T1|OVERSEAS|Google AI Blog|https://blog.google/technology/ai/rss/|rss|ok|daily
+T1|OVERSEAS|Microsoft Research|https://www.microsoft.com/en-us/research/feed/|rss|ok|monthly
+T1|OVERSEAS|NVIDIA Blog|https://blogs.nvidia.com/feed/|rss|ok|daily
+T1|OVERSEAS|GitHub Blog AI&ML|https://github.blog/ai-and-ml/feed/|rss|ok|weekly
+T1|OVERSEAS|Apple ML Research|https://machinelearning.apple.com/rss.xml|rss|ok|monthly
+T1|OVERSEAS|Anthropic News (无 RSS,走 sitemap+lastmod)|https://www.anthropic.com/sitemap.xml|sitemap|ok|daily
+T1|OVERSEAS|Anthropic Engineering|https://www.anthropic.com/engineering|html|agent|daily
+T1|OVERSEAS|Anthropic News 列表页|https://www.anthropic.com/news|html|agent|daily
+T1|OVERSEAS|Google Research|https://research.google/blog/rss/|rss|retry|weekly
+T1|OVERSEAS|AWS ML Blog|https://aws.amazon.com/blogs/machine-learning/feed/|rss|retry|weekly
+T1|OVERSEAS|Mistral AI|https://mistral.ai/news/rss|rss|retry|weekly
+T1|OVERSEAS|xAI|https://x.ai/news/rss.xml|rss|retry|weekly
+T1|OVERSEAS|Hugging Face Blog|https://huggingface.co/blog/feed.xml|rss|retry|daily
+T1|OVERSEAS|Hugging Face Daily Papers|https://huggingface.co/papers/feed|rss|retry|daily
+T1|OVERSEAS|Microsoft AI Blog|https://blogs.microsoft.com/ai/feed/|rss|retry|daily
+T1|OVERSEAS|Amazon Science|https://www.amazon.science/blog/feed/|rss|retry|weekly
+#
+# --- T1 国内官方一手 ---
+# 国内厂商官网普遍没有 RSS:只有通义千问的 GitHub Pages 博客是真 feed(且已迁站,原文停在 2025-09),
+# 其余走 HTML 列表页由 agent 解析。
+T1|CHINA|通义千问 Qwen Blog (已迁站,内容停更)|https://qwenlm.github.io/blog/index.xml|rss|ok|monthly
+T1|CHINA|Qwen 官方博客|https://qwen.ai/blog|html|agent|daily
+T1|CHINA|DeepSeek 更新|https://api-docs.deepseek.com/news/|html|agent|daily
+T1|CHINA|DeepSeek 快讯|https://api-docs.deepseek.com/updates/|html|agent|daily
+T1|CHINA|智谱|https://www.zhipuai.cn/news|html|agent|daily
+T1|CHINA|字节 Seed|https://seed.bytedance.com/blog|html|agent|daily
+T1|CHINA|腾讯混元|https://hunyuan.tencent.com/|html|agent|daily
+T1|CHINA|百度文心|https://wenxin.baidu.com/|html|agent|daily
+T1|CHINA|MiniMax|https://www.minimaxi.com/news|html|agent|daily
+T1|CHINA|月之暗面 Kimi|https://www.kimi.com/|html|agent|daily
+T1|CHINA|华为昇腾|https://www.hiascend.com/|html|agent|daily
+T1|CHINA|智源 BAAI Hub|https://hub.baai.ac.cn/|html|agent|daily
+T1|CHINA|上海 AI Lab|https://www.shlab.org.cn/|html|agent|daily
+T1|CHINA|ModelScope|https://www.modelscope.cn/|html|agent|daily
+#
+# --- T2 海外研究机构与论文 ---
+T2|OVERSEAS|MIT News AI|https://news.mit.edu/rss/topic/artificial-intelligence2|rss|ok|daily
+T2|OVERSEAS|arXiv cs.AI|http://export.arxiv.org/rss/cs.AI|rss|ok|daily
+T2|OVERSEAS|arXiv cs.LG|http://export.arxiv.org/rss/cs.LG|rss|ok|daily
+T2|OVERSEAS|arXiv cs.CL|http://export.arxiv.org/rss/cs.CL|rss|ok|daily
+T2|OVERSEAS|arXiv cs.RO|http://export.arxiv.org/rss/cs.RO|rss|ok|daily
+T2|OVERSEAS|arXiv cs.CV|http://export.arxiv.org/rss/cs.CV|rss|ok|daily
+T2|OVERSEAS|BAIR|https://bair.berkeley.edu/blog/feed.xml|rss|ok|monthly
+T2|OVERSEAS|Stanford HAI|https://hai.stanford.edu/news/rss.xml|rss|retry|weekly
+T2|OVERSEAS|Allen Institute for AI|https://allenai.org/blog/rss.xml|rss|retry|weekly
+#
+# --- T3 海外媒体与 Newsletter ---
+T3|OVERSEAS|The Verge AI|https://www.theverge.com/rss/ai-artificial-intelligence/index.xml|rss|ok|daily
+T3|OVERSEAS|Ars Technica AI|https://arstechnica.com/ai/feed/|rss|ok|daily
+T3|OVERSEAS|Ars Technica Technology Lab|https://feeds.arstechnica.com/arstechnica/technology-lab|rss|ok|daily
+T3|OVERSEAS|MIT Technology Review AI|https://www.technologyreview.com/topic/artificial-intelligence/feed|rss|ok|daily
+T3|OVERSEAS|WIRED AI|https://www.wired.com/feed/tag/ai/latest/rss|rss|ok|daily
+T3|OVERSEAS|The Decoder|https://the-decoder.com/feed/|rss|ok|daily
+T3|OVERSEAS|TechCrunch AI|https://techcrunch.com/category/artificial-intelligence/feed/|rss|ok|daily
+T3|OVERSEAS|AI Business|https://aibusiness.com/rss.xml|rss|ok|weekly
+T3|OVERSEAS|404 Media|https://www.404media.co/rss/|rss|ok|daily
+T3|OVERSEAS|MarkTechPost|https://www.marktechpost.com/feed/|rss|ok|daily
+T3|OVERSEAS|KDnuggets|https://www.kdnuggets.com/feed|rss|ok|daily
+T3|OVERSEAS|Techmeme (全科技,需按 topic 过滤)|https://www.techmeme.com/feed.xml|rss|ok|daily
+T3|OVERSEAS|The Rundown AI|https://www.therundown.ai/feed|rss|ok|daily
+T3|OVERSEAS|Ben's Bites|https://www.bensbites.com/feed|rss|ok|weekly
+T3|OVERSEAS|Latent Space|https://www.latent.space/feed|rss|ok|weekly
+T3|OVERSEAS|Interconnects|https://www.interconnects.ai/feed|rss|ok|weekly
+T3|OVERSEAS|One Useful Thing|https://www.oneusefulthing.org/feed|rss|ok|weekly
+T3|OVERSEAS|Last Week in AI|https://lastweekin.ai/feed|rss|ok|weekly
+T3|OVERSEAS|Import AI (Substack,本网络 DNS 被劫持)|https://importai.substack.com/feed|rss|retry|weekly
+T3|OVERSEAS|The Sequence (Substack)|https://thesequence.substack.com/feed|rss|retry|weekly
+T3|OVERSEAS|Epoch AI (Substack)|https://epochai.substack.com/feed|rss|retry|weekly
+T3|OVERSEAS|AlphaSignal (Substack)|https://alphasignalai.substack.com/feed|rss|retry|weekly
+#
+# --- T3 国内媒体与开发者站 ---
+T3|CHINA|量子位 QbitAI|https://www.qbitai.com/feed|rss|ok|daily
+T3|CHINA|新智元|https://www.aiera.com.cn/feed|rss|ok|daily
+T3|CHINA|爱范儿 ifanr (必须 GET,HEAD 403)|https://www.ifanr.com/feed|rss|ok|daily
+T3|CHINA|极客公园 GeekPark (首页 403,RSS 可通)|https://www.geekpark.net/rss|rss|ok|daily
+T3|CHINA|钛媒体|https://www.tmtpost.com/feed|rss|ok|daily
+T3|CHINA|雷峰网|https://www.leiphone.com/feed|rss|ok|daily
+T3|CHINA|少数派|https://sspai.com/feed|rss|ok|daily
+T3|CHINA|IT之家|https://www.ithome.com/rss/|rss|ok|daily
+T3|CHINA|博客园新闻|https://feed.cnblogs.com/news/rss|rss|ok|daily
+T3|CHINA|稀土掘金|https://juejin.cn/rss|rss|ok|daily
+T3|CHINA|InfoQ 中文|https://www.infoq.cn/feed|rss|ok|daily
+T3|CHINA|RadarAI (聚合站)|https://radarai.top/feed.xml|rss|ok|daily
+T3|CHINA|PixelsTech AI (聚合站)|https://www.pixelstech.net/feed/rss/ai|rss|ok|daily
+T3|CHINA|BestBlogs.dev (聚合站)|https://www.bestblogs.dev/feeds/rss|rss|ok|daily
+T3|CHINA|每日黎明 DailyDawn (聚合站)|https://dailydawn.dev/feed.xml|rss|ok|daily
+#
+# --- AGG 免密钥聚合站(单次请求顶几十个 feed,优先用)---
+AGG|OVERSEAS|AIHOT 精选 JSON|https://aihot.news/api/v1/items?mode=selected&window=24h&limit=50|json|ok|daily
+AGG|OVERSEAS|AIHOT Agent Markdown (最省 token,给 agent 直读)|https://aihot.news/api/v1/agent/latest|md|ok|daily
+AGG|OVERSEAS|AIHOT RSS|https://aihot.news/feed.xml|rss|ok|daily
+AGG|OVERSEAS|AIHOT 热点榜|https://aihot.news/api/v1/hot-topics|json|ok|daily
+AGG|OVERSEAS|AIHOT 日报|https://aihot.news/api/v1/dailies/latest|json|ok|daily
+#
+# --- GH GitHub 生态(第三优先档)---
+GH|GITHUB|GitHub Trending 日榜|https://mshibanami.github.io/GitHubTrendingRSS/daily/all.xml|rss|ok|daily
+GH|GITHUB|GitHub Trending 周榜|https://mshibanami.github.io/GitHubTrendingRSS/weekly/all.xml|rss|ok|weekly
+GH|GITHUB|GitHub API 仓库搜索|https://api.github.com/search/repositories?q=stars:%3E100+topic:ai&sort=updated&per_page=30|json|ok|daily
+GH|GITHUB|vllm release|https://github.com/vllm-project/vllm/releases.atom|atom|ok|weekly
+GH|GITHUB|ollama release|https://github.com/ollama/ollama/releases.atom|atom|ok|weekly
+GH|GITHUB|langchain release|https://github.com/langchain-ai/langchain/releases.atom|atom|retry|weekly
+GH|GITHUB|transformers release|https://github.com/huggingface/transformers/releases.atom|atom|retry|weekly
+GH|GITHUB|llama.cpp release|https://github.com/ggml-org/llama.cpp/releases.atom|atom|retry|weekly
+GH|GITHUB|open-webui release|https://github.com/open-webui/open-webui/releases.atom|atom|retry|weekly
+GH|GITHUB|ComfyUI release|https://github.com/comfyanonymous/ComfyUI/releases.atom|atom|retry|weekly
+GH|GITHUB|sglang release|https://github.com/sgl-project/sglang/releases.atom|atom|retry|weekly
+GH|GITHUB|dify release|https://github.com/langgenius/dify/releases.atom|atom|retry|weekly
+GH|GITHUB|lobe-chat release|https://github.com/lobehub/lobe-chat/releases.atom|atom|retry|weekly
+GH|GITHUB|openai/codex release|https://github.com/openai/codex/releases.atom|atom|retry|weekly
+GH|GITHUB|claude-code release|https://github.com/anthropics/claude-code/releases.atom|atom|retry|weekly
